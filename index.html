@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aplikasi Jurnal & Absensi</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root { --primary: #2563eb; --bg: #f8fafc; --text: #1e293b; }
+        body { background-color: var(--bg); margin: 0; padding: 20px; font-family: 'Segoe UI', sans-serif; color: var(--text); }
+        .absensi-app { max-width: 600px; margin: 0 auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        
+        /* LOGIN STYLE */
+        #view-login { text-align: center; padding: 20px; }
+        .login-input { width: 80%; padding: 12px; margin: 10px 0; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 1rem; }
+        .pin-input { letter-spacing: 5px; text-align: center; font-weight: bold; }
+        
+        /* APP HEADER */
+        .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; border-bottom: 2px solid #e2e8f0; padding-bottom: 15px; }
+        .guru-info { font-size: 0.9rem; }
+        .guru-nama { font-weight: bold; color: var(--primary); font-size: 1.1rem; }
+        .guru-nip { color: #64748b; font-size: 0.85rem; }
+        
+        /* CONTROLS */
+        .control-panel { background: #f1f5f9; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
+        .form-row { display: flex; gap: 10px; margin-bottom: 10px; }
+        .form-group { flex: 1; margin-bottom: 10px; }
+        .form-group label { display: block; margin-bottom: 5px; font-size: 0.8rem; font-weight: 600; }
+        .form-control { width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; }
+        textarea.form-control { resize: vertical; height: 60px; }
+        
+        /* BUTTONS */
+        .btn { width: 100%; padding: 12px; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 1rem; }
+        .btn-primary { background-color: var(--primary); color: white; margin-top: 15px; }
+        .btn-success { background-color: #10b981; color: white; margin-top: 15px; }
+        .btn-warning { background-color: #f59e0b; color: white; margin-top: 15px; }
+        .btn:disabled { background-color: #cbd5e1; cursor: not-allowed; opacity: 0.7; }
+        
+        /* LIST SISWA */
+        .siswa-list { height: auto; border: 1px solid #e2e8f0; border-radius: 6px; margin-bottom: 15px; }
+        .siswa-item { display: flex; align-items: center; padding: 10px; border-bottom: 1px solid #f1f5f9; }
+        .siswa-info { flex: 1; }
+        .siswa-name { font-weight: 600; display: block; font-size: 0.9rem; }
+        .siswa-details { font-size: 0.75rem; color: #64748b; }
+        
+        /* RADIO BUTTONS */
+        .absen-options { display: flex; gap: 3px; flex-wrap: wrap; }
+        .radio-btn { display: none; }
+        .radio-label { width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; border-radius: 50%; border: 1px solid #e2e8f0; cursor: pointer; font-size: 0.65rem; font-weight: bold; transition: 0.2s; }
+        
+        .radio-btn[value="H"]:checked + .radio-label { background: #10b981; color: white; border-color: #10b981; }
+        .radio-btn[value="S"]:checked + .radio-label { background: #f59e0b; color: white; border-color: #f59e0b; }
+        .radio-btn[value="I"]:checked + .radio-label { background: #3b82f6; color: white; border-color: #3b82f6; }
+        .radio-btn[value="A"]:checked + .radio-label { background: #ef4444; color: white; border-color: #ef4444; }
+        .radio-btn[value="T"]:checked + .radio-label { background: #8b5cf6; color: white; border-color: #8b5cf6; }
+        .radio-btn[value="B"]:checked + .radio-label { background: #1e293b; color: white; border-color: #1e293b; }
+        .radio-btn[value="D"]:checked + .radio-label { background: #ec4899; color: white; border-color: #ec4899; }
+
+        /* LOADING BIASA (Login/Absen) */
+        #loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.9); display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 1000; }
+        .spinner { width: 40px; height: 40px; border: 4px solid #e2e8f0; border-top: 4px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        /* --- LOADING KHUSUS REKAP (GERIGI MERAH + LOGO) --- */
+        #loading-rekap {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255, 255, 255, 0.98);
+            display: none; 
+            flex-direction: column; justify-content: center; align-items: center;
+            z-index: 2000;
+        }
+
+        .gear-wrapper-red {
+            position: relative;
+            width: 180px;  
+            height: 180px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        /* 1. Gerigi Merah Berputar di Luar */
+        .outer-gear-icon {
+            font-size: 180px; 
+            color: #ef4444;   /* WARNA MERAH */
+            position: absolute; 
+            top: 0; left: 0;
+            animation: spin-slow 5s linear infinite; 
+            z-index: 1; 
+        }
+
+        /* 2. Logo DigiStaff Diam di Tengah */
+        .custom-logo-center {
+            width: 130px; 
+            height: 130px;
+            object-fit: contain;
+            position: absolute; 
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%); 
+            z-index: 2;   
+            border-radius: 50%; 
+            background: white; 
+            padding: 2px; 
+        }
+
+        @keyframes spin-slow { 
+            0% { transform: rotate(0deg); } 
+            100% { transform: rotate(360deg); } 
+        }
+
+        .loading-msg { font-size: 1.2rem; font-weight: 700; color: #1e293b; margin-bottom: 5px; }
+        .loading-sub { font-size: 0.9rem; color: #64748b; }
+
+        .divider { height: 1px; background: #e2e8f0; margin: 20px 0; }
+        .legend { background:#f1f5f9; padding:8px; border-radius:6px; font-size:0.75rem; color:#475569; margin-bottom:10px; border:1px solid #cbd5e1; text-align: center;}
+    </style>
+</head>
+<body>
+
+<div id="loading-overlay">
+    <div class="spinner"></div>
+    <div style="margin-top: 10px; font-weight: 600; color: #64748b;" id="loading-text">Memuat...</div>
+</div>
+
+<div id="loading-rekap">
+    <div class="gear-wrapper-red">
+        <i class="fa-solid fa-gear outer-gear-icon"></i>
+        
+        <img src="https://lh3.googleusercontent.com/d/1IQ7wtvRfVWK7tTGmEFPb_19i7BQeYKaY" 
+             class="custom-logo-center" alt="Logo DigiStaff">
+    </div>
+    
+    <div class="loading-msg">Memproses Rekapitulasi...</div>
+    <div class="loading-sub">Sistem sedang membuat file Excel bulanan.</div>
+</div>
+
+<div id="view-login">
+    <div class="absensi-app">
+        <h2 style="color: var(--primary);">🔐 Login Guru</h2>
+        
+        <input type="text" id="login-nip" class="login-input" placeholder="Masukkan NIP" inputmode="numeric">
+        
+        <p style="color: #64748b; font-size: 0.8rem; margin: 5px 0;">PIN = Jam Menit Saat Ini (Contoh: 0730)</p>
+        <input type="password" id="login-pin" class="login-input pin-input" maxlength="4" placeholder="••••">
+        
+        <div style="margin: 10px 0; text-align: left; width: 80%; margin: 10px auto;">
+            <input type="checkbox" id="remember-me">
+            <label for="remember-me" style="font-size: 0.9rem; color: #475569;">Ingat Perangkat Ini</label>
+        </div>
+
+        <button class="btn btn-primary" onclick="doLogin()">MASUK</button>
+    </div>
+</div>
+
+<div id="view-app" style="display: none;">
+    <div class="absensi-app">
+        
+        <div class="header">
+            <div class="guru-info">
+                <div class="guru-nama" id="disp-nama-guru">Nama Guru</div>
+                <div class="guru-nip" id="disp-nip-guru">NIP: -</div>
+            </div>
+            <button onclick="logout()" style="background:none; border:none; color:#ef4444; cursor:pointer;" title="Keluar">
+                <i class="fa-solid fa-right-from-bracket fa-lg"></i>
+            </button>
+        </div>
+
+        <div class="control-panel">
+            <div class="form-group" id="container-mapel" style="display:none;">
+                <label>Pilih Mata Pelajaran</label>
+                <select id="select_mapel" class="form-control"></select>
+            </div>
+            <input type="hidden" id="single_mapel_val"> 
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Kelas</label>
+                    <select id="select_kelas" class="form-control" onchange="loadDataSiswa()">
+                        <option value="">-- Pilih --</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Tanggal</label>
+                    <select id="tgl_absen" class="form-control" onchange="handleDateChange()">
+                        <option value="">Loading...</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group" style="flex: 2;">
+                    <label>Materi / Bab</label>
+                    <input type="text" id="input_materi" class="form-control" placeholder="Contoh: Bab 1 Aljabar">
+                </div>
+                <div class="form-group" style="flex: 1;">
+                    <label>Jam Ke-</label>
+                    <input type="text" id="input_jam" class="form-control" placeholder="1-2">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Uraian Kegiatan</label>
+                <textarea id="input_uraian" class="form-control" placeholder="Deskripsi kegiatan pembelajaran..."></textarea>
+            </div>
+        </div>
+
+        <div class="legend">
+            <strong>Ket:</strong> H=Hadir S=Sakit I=Ijin A=Alpa T=Terlambat B=Bolos D=Dispen
+        </div>
+
+        <div class="siswa-list" id="list-siswa">
+            <div style="text-align: center; color: #64748b; padding: 20px;">Silakan pilih Kelas & Tanggal</div>
+        </div>
+
+        <button class="btn btn-primary" onclick="simpanAbsen()">
+            <i class="fa-solid fa-floppy-disk"></i> SIMPAN PRESENSI
+        </button>
+
+        <button id="btn-jurnal" class="btn btn-warning" onclick="buatJurnal()" disabled>
+            <i class="fa-solid fa-book-open"></i> BUAT JURNAL HARIAN
+        </button>
+
+        <div class="divider"></div>
+        
+        <button class="btn btn-success" onclick="buatRekap()">
+            <i class="fa-solid fa-file-excel"></i> BUAT REKAP BULANAN
+        </button>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/2.1.2/sweetalert.min.js"></script>
+
+<script>
+    // ============================================
+    // LANGKAH PENTING: ISI URL WEB APP DI BAWAH INI
+    // ============================================
+    const URL_APPS_SCRIPT = "https://script.google.com/macros/s/AKfycbz45AS2nfjeiwdwKOa6hsV0HGmjqMwfF-2EpfVmO-g71ywAAOqtJ3uWpzKOJiCHLgvf/exec";
+    // ============================================
+
+    const URL_FOLDER_REKAP = "https://drive.google.com/drive/folders/1Ic0kyLCG3A0ot6OrEyB3JJ3ppHyvlWJh?usp=sharing";
+
+    let CURRENT_USER = null; 
+    let DATA_SISWA = [];
+    let ALL_DATES = []; 
+    let PRESENSI_SAVED = false; 
+
+    // --- CEK SESSION SAAT LOAD ---
+    window.onload = function() {
+        const savedNip = localStorage.getItem("guru_nip");
+        const savedToken = localStorage.getItem("guru_token");
+        
+        if(savedNip && savedToken) {
+            document.getElementById("login-nip").value = savedNip;
+            const savedUser = JSON.parse(localStorage.getItem("guru_data") || "null");
+            if(savedUser) {
+                CURRENT_USER = savedUser;
+                showApp();
+            }
+        }
+
+        // FITUR LOGIN DENGAN ENTER
+        const inputNip = document.getElementById("login-nip");
+        const inputPin = document.getElementById("login-pin");
+
+        function checkEnter(event) {
+            if (event.key === "Enter") {
+                doLogin(); 
+            }
+        }
+
+        inputNip.addEventListener("keypress", checkEnter);
+        inputPin.addEventListener("keypress", checkEnter);
+    };
+
+    function doLogin() {
+        const nip = document.getElementById("login-nip").value;
+        const pin = document.getElementById("login-pin").value;
+        const remember = document.getElementById("remember-me").checked;
+        
+        if(!nip || !pin) { swal("Error", "Isi NIP dan PIN!", "error"); return; }
+        
+        const deviceId = Math.random().toString(36).substring(2, 15);
+        
+        loading(true, "Memverifikasi...");
+        
+        fetch(URL_APPS_SCRIPT + `?action=login&nip=${nip}&pin=${pin}&deviceId=${deviceId}`)
+        .then(r => r.json())
+        .then(res => {
+            loading(false);
+            if(res.status === "success") {
+                CURRENT_USER = res.data; 
+                
+                if(remember) {
+                    localStorage.setItem("guru_nip", nip);
+                    localStorage.setItem("guru_token", res.token);
+                    localStorage.setItem("guru_data", JSON.stringify(CURRENT_USER));
+                }
+                
+                showApp();
+            } else {
+                // HAPUS INPUT JIKA GAGAL
+                document.getElementById("login-nip").value = "";
+                document.getElementById("login-pin").value = "";
+                document.getElementById("login-nip").focus();
+                swal("Login Gagal", res.message, "error");
+            }
+        })
+        .catch(e => { 
+            loading(false);
+            // HAPUS INPUT JIKA ERROR SERVER
+            document.getElementById("login-nip").value = "";
+            document.getElementById("login-pin").value = "";
+            swal("Error", "Gagal koneksi server", "error"); 
+        });
+    }
+    
+    function logout() {
+        localStorage.clear();
+        location.reload();
+    }
+    
+    function showApp() {
+        document.getElementById("view-login").style.display = "none";
+        document.getElementById("view-app").style.display = "block";
+        
+        document.getElementById("disp-nama-guru").innerText = CURRENT_USER.nama;
+        document.getElementById("disp-nip-guru").innerText = "NIP: " + CURRENT_USER.nip;
+        
+        const mapelStr = String(CURRENT_USER.mapel);
+        const mapelArr = mapelStr.split(",").map(s => s.trim());
+        const selectMapel = document.getElementById("select_mapel");
+        const containerMapel = document.getElementById("container-mapel");
+        
+        if(mapelArr.length > 1) {
+            containerMapel.style.display = "block";
+            selectMapel.innerHTML = "";
+            mapelArr.forEach(m => {
+                let opt = document.createElement("option");
+                opt.value = m; opt.text = m;
+                selectMapel.add(opt);
+            });
+        } else {
+            containerMapel.style.display = "none";
+            document.getElementById("single_mapel_val").value = mapelArr[0]; 
+        }
+
+        loadDaftarKelas();
+        loadDaftarTanggal();
+    }
+
+    function getSelectedMapel() {
+        const container = document.getElementById("container-mapel");
+        if(container.style.display !== "none") {
+            return document.getElementById("select_mapel").value;
+        }
+        return document.getElementById("single_mapel_val").value;
+    }
+
+    function loading(show, msg="Memuat...") {
+        document.getElementById("loading-text").innerText = msg;
+        document.getElementById("loading-overlay").style.display = show ? "flex" : "none";
+    }
+
+    function loadDaftarKelas() {
+        fetch(URL_APPS_SCRIPT + "?action=getClasses")
+        .then(r => r.json())
+        .then(res => {
+            let sel = document.getElementById("select_kelas");
+            sel.innerHTML = '<option value="">-- Pilih Kelas --</option>';
+            if(res.status === 'success') {
+                res.classes.forEach(c => {
+                    let opt = document.createElement("option");
+                    opt.value = c; opt.text = c; sel.add(opt);
+                });
+            }
+        });
+    }
+
+    function loadDaftarTanggal() {
+        fetch(URL_APPS_SCRIPT + "?action=getDates")
+        .then(r => r.json())
+        .then(res => {
+            ALL_DATES = res.dates || [];
+            renderDropdownTanggal(false);
+        });
+    }
+
+    function renderDropdownTanggal(showAll) {
+        let sel = document.getElementById("tgl_absen");
+        sel.innerHTML = ''; 
+        let today = new Date(); 
+        today.setHours(0,0,0,0); 
+        
+        let recentDates = []; // 5 hari ke belakang
+        let olderDates = [];  // Lebih dari 5 hari
+        let reversedDates = [...ALL_DATES].reverse();
+
+        // Nama Bulan untuk Grouping
+        const namaBulan = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+
+        reversedDates.forEach(dStr => {
+            let parts = dStr.split("-");
+            let dObj = new Date(parts[2], parts[1]-1, parts[0]);
+            
+            // Sembunyikan Hari Depan
+            if (dObj > today) return;
+
+            let diffDays = Math.floor((today - dObj) / (1000 * 60 * 60 * 24)); 
+            
+            // Pisahkan Recent (0-5 hari) dan Older
+            if (diffDays <= 5) {
+                recentDates.push(dStr);
+            } else {
+                olderDates.push({ str: dStr, obj: dObj });
+            }
+        });
+
+        // Render Recent (Terbaru)
+        if(recentDates.length > 0) {
+            let grp = document.createElement("optgroup"); grp.label = "Terbaru";
+            recentDates.forEach(d => {
+                let opt = document.createElement("option"); opt.value = d; opt.text = d;
+                let dTodayStr = ("0" + today.getDate()).slice(-2) + "-" + ("0" + (today.getMonth()+1)).slice(-2) + "-" + today.getFullYear();
+                if(d === dTodayStr) opt.selected = true;
+                grp.appendChild(opt);
+            });
+            sel.appendChild(grp);
+        }
+
+        // Render Older (Lampau)
+        if (showAll && olderDates.length > 0) {
+            // Group per Bulan
+            let currentMonthLabel = "";
+            let currentGroup = null;
+
+            olderDates.forEach(item => {
+                let mIndex = item.obj.getMonth();
+                let y = item.obj.getFullYear();
+                let label = namaBulan[mIndex] + " " + y;
+
+                if (label !== currentMonthLabel) {
+                    currentMonthLabel = label;
+                    currentGroup = document.createElement("optgroup");
+                    currentGroup.label = label;
+                    sel.appendChild(currentGroup);
+                }
+                
+                let opt = document.createElement("option"); 
+                opt.value = item.str; 
+                opt.text = item.str;
+                currentGroup.appendChild(opt);
+            });
+
+        } else if (olderDates.length > 0) {
+            let optMore = document.createElement("option");
+            optMore.value = "SHOW_ALL"; optMore.text = "📂 Tampilkan Hari Lampau...";
+            sel.add(optMore);
+        }
+        
+        if(sel.value && sel.value !== "SHOW_ALL") loadDataSiswa();
+    }
+
+    function handleDateChange() {
+        let sel = document.getElementById("tgl_absen");
+        if (sel.value === "SHOW_ALL") { renderDropdownTanggal(true); sel.focus(); } 
+        else { loadDataSiswa(); }
+    }
+
+    function loadDataSiswa() {
+        let kelas = document.getElementById("select_kelas").value;
+        let tgl = document.getElementById("tgl_absen").value;
+        
+        document.getElementById("btn-jurnal").disabled = true;
+        PRESENSI_SAVED = false;
+
+        if(!kelas || !tgl || tgl === "SHOW_ALL") return;
+
+        loading(true, "Sinkronisasi Data...");
+        fetch(URL_APPS_SCRIPT + "?action=getSiswa&kelas=" + encodeURIComponent(kelas))
+        .then(r => r.json())
+        .then(res => {
+            if(res.status === 'success') {
+                DATA_SISWA = res.data;
+                renderListSiswa();
+                loadAbsenHarian(tgl, kelas); 
+            } else { loading(false); alert("Error: " + res.message); }
+        })
+        .catch(e => { loading(false); alert("Gagal koneksi server!"); });
+    }
+
+    function renderListSiswa() {
+        let container = document.getElementById('list-siswa');
+        let html = "";
+        if(DATA_SISWA.length === 0) { container.innerHTML = '<div style="text-align:center; padding:20px;">Tidak ada siswa.</div>'; return; }
+
+        DATA_SISWA.forEach((s, idx) => {
+            html += `
+            <div class="siswa-item">
+                <div class="siswa-info">
+                    <span class="siswa-name">${s.absen}. ${s.nama}</span>
+                    <span class="siswa-details">${s.nis} | ${s.lp}</span>
+                </div>
+                <div class="absen-options">
+                    <input type="radio" class="radio-btn" name="st_${idx}" id="h_${idx}" value="H" checked>
+                    <label class="radio-label" for="h_${idx}">H</label>
+                    <input type="radio" class="radio-btn" name="st_${idx}" id="s_${idx}" value="S">
+                    <label class="radio-label" for="s_${idx}">S</label>
+                    <input type="radio" class="radio-btn" name="st_${idx}" id="i_${idx}" value="I">
+                    <label class="radio-label" for="i_${idx}">I</label>
+                    <input type="radio" class="radio-btn" name="st_${idx}" id="a_${idx}" value="A">
+                    <label class="radio-label" for="a_${idx}">A</label>
+                    <input type="radio" class="radio-btn" name="st_${idx}" id="t_${idx}" value="T">
+                    <label class="radio-label" for="t_${idx}">T</label>
+                    <input type="radio" class="radio-btn" name="st_${idx}" id="b_${idx}" value="B">
+                    <label class="radio-label" for="b_${idx}">B</label>
+                    <input type="radio" class="radio-btn" name="st_${idx}" id="d_${idx}" value="D">
+                    <label class="radio-label" for="d_${idx}">D</label>
+                </div>
+            </div>`;
+        });
+        container.innerHTML = html;
+    }
+
+    function loadAbsenHarian(tgl, kelas) {
+        DATA_SISWA.forEach((s, i) => { if(document.getElementById(`h_${i}`)) document.getElementById(`h_${i}`).checked = true; });
+
+        fetch(URL_APPS_SCRIPT + "?action=read&tanggal=" + tgl + "&kelas=" + encodeURIComponent(kelas))
+        .then(r => r.json())
+        .then(res => {
+            loading(false);
+            if(res.status === 'success' && res.data) {
+                res.data.forEach(item => {
+                    let idx = DATA_SISWA.findIndex(s => s.nis == item.nis);
+                    if(idx !== -1) {
+                        let btn = document.querySelector(`input[name="st_${idx}"][value="${item.status}"]`);
+                        if(btn) btn.checked = true;
+
+                        // --- FIX PENGUNCIAN ---
+                        if (item.status === 'B' || item.status === 'A') {
+                            // Jika B atau A: KUNCI SEMUA
+                            let radios = document.getElementsByName(`st_${idx}`);
+                            for(let r=0; r<radios.length; r++) radios[r].disabled = true;
+                        } 
+                        else if (item.status === 'T') {
+                            // Jika T: HANYA KUNCI TOMBOL 'H' (Value="H")
+                            let radioH = document.querySelector(`input[name="st_${idx}"][value="H"]`);
+                            if(radioH) radioH.disabled = true;
+                        }
+                    }
+                });
+            }
+        })
+        .catch(e => loading(false));
+    }
+
+    function simpanAbsen() {
+        let kelas = document.getElementById("select_kelas").value;
+        let tgl = document.getElementById("tgl_absen").value;
+        
+        if(!kelas) { swal("Warning", "Pilih Kelas Dulu!", "warning"); return; }
+        if(!tgl || tgl === "SHOW_ALL") { swal("Warning", "Pilih Tanggal Dulu!", "warning"); return; }
+
+        let absenData = [];
+        DATA_SISWA.forEach((s, i) => {
+            let v = document.querySelector(`input[name="st_${i}"]:checked`).value;
+            absenData.push({ nis: s.nis, status: v });
+            s.statusCurrent = v; 
+        });
+        
+        let payload = { action: "save", tanggal: tgl, kelas: kelas, absensi: absenData };
+        loading(true, "Menyimpan Presensi...");
+        
+        fetch(URL_APPS_SCRIPT, { method: "POST", body: JSON.stringify(payload) })
+        .then(r => r.json())
+        .then(res => {
+            loading(false);
+            if(res.status === "success") {
+                swal("Berhasil", res.message, "success");
+                document.getElementById("btn-jurnal").disabled = false;
+                PRESENSI_SAVED = true;
+
+                DATA_SISWA.forEach((s, idx) => {
+                     let checkedRadio = document.querySelector(`input[name="st_${idx}"]:checked`);
+                     if(checkedRadio) {
+                         let status = checkedRadio.value;
+                         
+                         // --- FIX PENGUNCIAN SETELAH SIMPAN ---
+                         if (status === 'B' || status === 'A') {
+                             // Jika B atau A: KUNCI SEMUA
+                             let radios = document.getElementsByName(`st_${idx}`);
+                             for(let r=0; r<radios.length; r++) radios[r].disabled = true;
+                         } 
+                         else if (status === 'T') {
+                             // Jika T: HANYA KUNCI TOMBOL 'H'
+                             let radioH = document.querySelector(`input[name="st_${idx}"][value="H"]`);
+                             if(radioH) radioH.disabled = true;
+                         }
+                     }
+                });
+            } else {
+                swal("Gagal", res.message, "error");
+            }
+        })
+        .catch(e => { loading(false); swal("Info", "Cek Spreadsheet.", "warning"); });
+    }
+
+    function buatJurnal() {
+        if(!PRESENSI_SAVED) { swal("Info", "Simpan Presensi Terlebih Dahulu!", "warning"); return; }
+        
+        const mapel = getSelectedMapel();
+        const materi = document.getElementById("input_materi").value;
+        const jam = document.getElementById("input_jam").value;
+        const uraian = document.getElementById("input_uraian").value;
+        const kelas = document.getElementById("select_kelas").value;
+        const tgl = document.getElementById("tgl_absen").value;
+
+        if(!mapel || !materi || !jam || !uraian) {
+            swal("Data Belum Lengkap", "Mohon isi Materi, Jam, dan Uraian Kegiatan.", "warning");
+            return;
+        }
+
+        let dataAbsenLengkap = [];
+        DATA_SISWA.forEach((s, i) => {
+            let v = document.querySelector(`input[name="st_${i}"]:checked`).value;
+            dataAbsenLengkap.push({
+                nis: s.nis,
+                nama: s.nama,
+                status: v
+            });
+        });
+
+        let payload = {
+            action: "buatJurnal",
+            nip: CURRENT_USER.nip,
+            nama: CURRENT_USER.nama,
+            mapel: mapel,
+            materi: materi,
+            jam: jam,
+            uraian: uraian,
+            kelas: kelas,
+            tanggal: tgl,
+            absensi: dataAbsenLengkap
+        };
+
+        loading(true, "Membuat Jurnal Harian...");
+        
+        fetch(URL_APPS_SCRIPT, { method: "POST", body: JSON.stringify(payload) })
+        .then(r => r.json())
+        .then(res => {
+            loading(false);
+            if(res.status === "success") {
+                swal("Sukses!", "Jurnal Berhasil Dibuat.", "success")
+                .then(() => {
+                    window.open(res.url, "_blank");
+                });
+            } else {
+                swal("Gagal", res.message, "error");
+            }
+        })
+        .catch(e => { loading(false); swal("Error", "Gagal menghubungi server", "error"); });
+    }
+
+    function buatRekap() {
+        let kelas = document.getElementById("select_kelas").value;
+        if(!kelas) { swal("Info", "Pilih Kelas dulu!", "warning"); return; }
+        let tglStr = document.getElementById("tgl_absen").value; 
+        if(!tglStr || tglStr === "SHOW_ALL") { swal("Info", "Pilih Tanggal dulu!", "warning"); return; }
+        
+        let parts = tglStr.split("-");
+        let bulan = parseInt(parts[1]); 
+        let tahun = parseInt(parts[2]);
+        
+        swal({
+            title: "Buat Laporan?",
+            text: `Membuat file: ${kelas} - Bulan ${bulan} - ${tahun}`,
+            icon: "info",
+            buttons: ["Batal", "Buat"]
+        }).then(yes => {
+            if(yes) {
+                document.getElementById("loading-rekap").style.display = "flex";
+                
+                fetch(URL_APPS_SCRIPT + `?action=rekap&kelas=${encodeURIComponent(kelas)}&bulan=${bulan}&tahun=${tahun}`)
+                .then(r => r.json())
+                .then(res => {
+                    document.getElementById("loading-rekap").style.display = "none";
+                    
+                    if(res.status === "success") {
+                        swal("Sukses!", "Cek Folder Google Drive.", "success")
+                        .then(() => { window.open(URL_FOLDER_REKAP, "_blank"); });
+                    } else { swal("Gagal", res.message, "error"); }
+                })
+                .catch(e => {
+                     document.getElementById("loading-rekap").style.display = "none";
+                     swal("Error", "Gagal koneksi server", "error"); 
+                });
+            }
+        });
+    }
+</script>
+
+</body>
+</html>

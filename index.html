@@ -4,13 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Aplikasi Jurnal & Absensi</title>
-   <link rel="shortcut icon" href="https://drive.google.com/file/d/1QQ5Euu8UqFZhVM1zwyZ-QC1h6TCQ4ZiY/view?usp=sharing" type="image/x-icon">
-    <link rel="icon" href="https://drive.google.com/file/d/1QQ5Euu8UqFZhVM1zwyZ-QC1h6TCQ4ZiY/view?usp=sharing" type="image/x-icon">
-
-    <link rel="apple-touch-icon" href="https://drive.google.com/file/d/1lF66bb2l9JRcER2oBiHNQUnoMDnI4VH7/view?usp=drive_link">
-
-    <link rel="icon" sizes="192x192" href="https://drive.google.com/file/d/1IHwcUJtwT8aoEhqHbBD46HFhpKEYnRBN/view?usp=drive_link">
-    <link rel="icon" sizes="512x512" href="https://drive.google.com/file/d/1GcfgsZhj3vVcJ0PLoStV5hUCi8rvJqts/view?usp=sharing">
+    
+    <link rel="icon" href="https://drive.google.com/thumbnail?id=1WYHFwnSkAhz66zwxnhdZ6On9G8MBTQZl&sz=s1000" type="image/x-icon">
+    <link rel="shortcut icon" href="https://drive.google.com/thumbnail?id=1WYHFwnSkAhz66zwxnhdZ6On9G8MBTQZl&sz=s1000" type="image/x-icon">
+    <link rel="apple-touch-icon" href="https://drive.google.com/thumbnail?id=1WYHFwnSkAhz66zwxnhdZ6On9G8MBTQZl&sz=s1000">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
@@ -23,7 +20,22 @@
         .login-input { width: 80%; padding: 12px; margin: 10px 0; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 1rem; }
         .pin-input { letter-spacing: 5px; text-align: center; font-weight: bold; }
         
-        /* APP HEADER */
+        /* CSS LOGO (Agar Gambar Jelas & Tidak Gepeng) */
+        .logo-sekolah-container {
+            width: 140px; 
+            height: 140px; 
+            margin: 0 auto 15px auto;
+            display: flex; 
+            justify-content: center; 
+            align-items: center;
+        }
+        .logo-sekolah-img {
+            width: 100%; 
+            height: 100%; 
+            object-fit: contain; /* Gambar akan pas di kotak tanpa terpotong */
+        }
+
+        /* HEADER & APP */
         .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; border-bottom: 2px solid #e2e8f0; padding-bottom: 15px; }
         .guru-info { font-size: 0.9rem; }
         .guru-nama { font-weight: bold; color: var(--primary); font-size: 1.1rem; }
@@ -42,6 +54,9 @@
         .btn-primary { background-color: var(--primary); color: white; margin-top: 15px; }
         .btn-success { background-color: #10b981; color: white; margin-top: 15px; }
         .btn-warning { background-color: #f59e0b; color: white; margin-top: 15px; }
+        .btn-info { background-color: #0ea5e9; color: white; margin-top: 15px; }
+        .btn-danger { background-color: #ef4444; color: white; }
+        .btn-secondary { background-color: #64748b; color: white; }
         .btn:disabled { background-color: #cbd5e1; cursor: not-allowed; opacity: 0.7; }
         
         /* LIST SISWA */
@@ -64,64 +79,34 @@
         .radio-btn[value="B"]:checked + .radio-label { background: #1e293b; color: white; border-color: #1e293b; }
         .radio-btn[value="D"]:checked + .radio-label { background: #ec4899; color: white; border-color: #ec4899; }
 
-        /* LOADING BIASA (Login/Absen) */
-        #loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.9); display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 1000; }
+        /* LOADING & ANIMATION */
+        #loading-overlay, #loading-rekap, #loading-status { position: fixed; top: 0; left: 0; width: 100%; height: 100%; display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 2000; }
+        #loading-overlay { background: rgba(255,255,255,0.9); }
+        #loading-rekap { background: rgba(255, 255, 255, 0.98); }
+        #loading-status { background: rgba(255, 255, 255, 0.9); }
         .spinner { width: 40px; height: 40px; border: 4px solid #e2e8f0; border-top: 4px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         
-        /* --- LOADING KHUSUS REKAP (GERIGI MERAH + LOGO) --- */
-        #loading-rekap {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(255, 255, 255, 0.98);
-            display: none; 
-            flex-direction: column; justify-content: center; align-items: center;
-            z-index: 2000;
-        }
-
-        .gear-wrapper-red {
-            position: relative;
-            width: 180px;  
-            height: 180px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin-bottom: 25px;
-        }
-
-        /* 1. Gerigi Merah Berputar di Luar */
-        .outer-gear-icon {
-            font-size: 180px; 
-            color: #ef4444;   /* WARNA MERAH */
-            position: absolute; 
-            top: 0; left: 0;
-            animation: spin-slow 5s linear infinite; 
-            z-index: 1; 
-        }
-
-        /* 2. Logo DigiStaff Diam di Tengah */
-        .custom-logo-center {
-            width: 130px; 
-            height: 130px;
-            object-fit: contain;
-            position: absolute; 
-            top: 50%; left: 50%;
-            transform: translate(-50%, -50%); 
-            z-index: 2;   
-            border-radius: 50%; 
-            background: white; 
-            padding: 2px; 
-        }
-
-        @keyframes spin-slow { 
-            0% { transform: rotate(0deg); } 
-            100% { transform: rotate(360deg); } 
-        }
-
-        .loading-msg { font-size: 1.2rem; font-weight: 700; color: #1e293b; margin-bottom: 5px; }
-        .loading-sub { font-size: 0.9rem; color: #64748b; }
-
-        .divider { height: 1px; background: #e2e8f0; margin: 20px 0; }
-        .legend { background:#f1f5f9; padding:8px; border-radius:6px; font-size:0.75rem; color:#475569; margin-bottom:10px; border:1px solid #cbd5e1; text-align: center;}
+        /* STYLE LOGO BERPUTAR (REKAP) */
+        .gear-wrapper-red { position: relative; width: 180px; height: 180px; display: flex; justify-content: center; align-items: center; margin-bottom: 25px; }
+        .outer-gear-icon { font-size: 180px; color: #ef4444; position: absolute; animation: spin-slow 5s linear infinite; }
+        .custom-logo-center { width: 110px; height: 110px; object-fit: contain; position: absolute; border-radius: 50%; background: white; padding: 5px; z-index: 5; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes spin-slow { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        /* TABLE & STATUS STYLE */
+        #view-status-absen { display: none; }
+        .table-container { overflow-x: auto; margin-top: 15px; border: 1px solid #e2e8f0; border-radius: 8px; }
+        .status-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; white-space: nowrap; }
+        .status-table th, .status-table td { padding: 10px; border: 1px solid #e2e8f0; text-align: center; }
+        .status-table th { background-color: #f1f5f9; font-weight: 600; color: #475569; }
+        .status-table th:first-child, .status-table td:first-child { position: sticky; left: 0; background-color: white; z-index: 2; font-weight: bold; text-align: left; border-right: 2px solid #cbd5e1; }
+        .status-table th:first-child { z-index: 3; background-color: #f8fafc; }
+        
+        .status-card { display: flex; justify-content: space-between; align-items: center; background: white; padding: 8px 10px; margin-bottom: 8px; border-radius: 6px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); cursor: pointer; border: 1px solid transparent; }
+        .status-card:hover { border-color: var(--primary); transform: translateY(-1px); }
+        .badge { padding: 4px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: bold; color: black; display: flex; align-items: center; gap: 5px; }
+        .badge-belum { background-color: #fca5a5; } .badge-sudah { background-color: #86efac; } .badge-lock { background-color: #e2e8f0; color: #94a3b8; }
+        .st-name { font-weight: 600; font-size: 0.85rem; } .st-date { font-size: 0.75rem; color: #64748b; margin-top: 2px;}
     </style>
 </head>
 <body>
@@ -131,39 +116,42 @@
     <div style="margin-top: 10px; font-weight: 600; color: #64748b;" id="loading-text">Memuat...</div>
 </div>
 
+<div id="loading-status">
+    <div class="spinner"></div>
+    <div style="margin-top: 10px; font-weight: 600; color: #64748b;">Mengecek Status...</div>
+</div>
+
 <div id="loading-rekap">
     <div class="gear-wrapper-red">
         <i class="fa-solid fa-gear outer-gear-icon"></i>
-        
-        <img src="https://lh3.googleusercontent.com/d/1IQ7wtvRfVWK7tTGmEFPb_19i7BQeYKaY" 
-             class="custom-logo-center" alt="Logo DigiStaff">
+        <img src="https://drive.google.com/thumbnail?id=1IQ7wtvRfVWK7tTGmEFPb_19i7BQeYKaY&sz=s1000" class="custom-logo-center" alt="Logo">
     </div>
-    
-    <div class="loading-msg">Memproses Rekapitulasi...</div>
+    <div class="loading-msg" style="margin-top: 20px; font-weight:bold;">Memproses Rekapitulasi...</div>
     <div class="loading-sub">Sistem sedang membuat file Excel bulanan.</div>
 </div>
 
 <div id="view-login">
     <div class="absensi-app">
-        <h2 style="color: var(--primary);">🔐 Login Guru</h2>
+        <div class="logo-sekolah-container">
+            <img src="https://drive.google.com/thumbnail?id=1WYHFwnSkAhz66zwxnhdZ6On9G8MBTQZl&sz=s1000" 
+                 class="logo-sekolah-img" 
+                 alt="Logo Sekolah">
+        </div>
         
+        <h2 style="color: var(--primary); margin-top: 0;">🔐 Login Guru</h2>
         <input type="text" id="login-nip" class="login-input" placeholder="Masukkan NIP" inputmode="numeric">
-        
-        <p style="color: #64748b; font-size: 0.8rem; margin: 5px 0;">PIN = Jam Menit Saat Ini (Contoh: 0730)</p>
+        <p style="color: #64748b; font-size: 0.8rem; margin: 5px 0;">PIN = Jam Menit Saat Ini</p>
         <input type="password" id="login-pin" class="login-input pin-input" maxlength="4" placeholder="••••">
-        
         <div style="margin: 10px 0; text-align: left; width: 80%; margin: 10px auto;">
             <input type="checkbox" id="remember-me">
             <label for="remember-me" style="font-size: 0.9rem; color: #475569;">Ingat Perangkat Ini</label>
         </div>
-
         <button class="btn btn-primary" onclick="doLogin()">MASUK</button>
     </div>
 </div>
 
 <div id="view-app" style="display: none;">
     <div class="absensi-app">
-        
         <div class="header">
             <div class="guru-info">
                 <div class="guru-nama" id="disp-nama-guru">Nama Guru</div>
@@ -213,27 +201,57 @@
             </div>
         </div>
 
-        <div class="legend">
-            <strong>Ket:</strong> H=Hadir S=Sakit I=Ijin A=Alpa T=Terlambat B=Bolos D=Dispen
+        <div class="legend"><strong>Ket:</strong> H=Hadir S=Sakit I=Ijin A=Alpa T=Terlambat B=Bolos D=Dispen</div>
+        <div class="siswa-list" id="list-siswa"><div style="text-align: center; color: #64748b; padding: 20px;">Silakan pilih Kelas & Tanggal</div></div>
+
+        <button class="btn btn-primary" onclick="simpanAbsen()"><i class="fa-solid fa-floppy-disk"></i> SIMPAN PRESENSI</button>
+        <button id="btn-jurnal" class="btn btn-warning" onclick="buatJurnal()" disabled><i class="fa-solid fa-book-open"></i> BUAT JURNAL HARIAN</button>
+
+        <div style="margin-top: 15px;">
+            <button class="btn btn-info" onclick="bukaHalamanStatus()"><i class="fa-solid fa-list-check"></i> CEK KETERISIAN ABSEN</button>
         </div>
-
-        <div class="siswa-list" id="list-siswa">
-            <div style="text-align: center; color: #64748b; padding: 20px;">Silakan pilih Kelas & Tanggal</div>
-        </div>
-
-        <button class="btn btn-primary" onclick="simpanAbsen()">
-            <i class="fa-solid fa-floppy-disk"></i> SIMPAN PRESENSI
-        </button>
-
-        <button id="btn-jurnal" class="btn btn-warning" onclick="buatJurnal()" disabled>
-            <i class="fa-solid fa-book-open"></i> BUAT JURNAL HARIAN
-        </button>
-
-        <div class="divider"></div>
         
-        <button class="btn btn-success" onclick="buatRekap()">
-            <i class="fa-solid fa-file-excel"></i> BUAT REKAP BULANAN
-        </button>
+        <div class="divider"></div>
+        <button class="btn btn-success" onclick="buatRekap()"><i class="fa-solid fa-file-excel"></i> BUAT REKAP BULANAN</button>
+        
+        <div style="margin-top: 20px; display: flex; gap: 10px;">
+            <button class="btn btn-danger" onclick="logout()" style="flex:1;">LOGOUT</button>
+        </div>
+    </div>
+</div>
+
+<div id="view-status-absen" style="display: none;">
+    <div class="absensi-app">
+        <h3 style="text-align:center; border-bottom:1px solid #ddd; padding-bottom:10px;">STATUS KETERISIAN ABSEN<br><span style="font-size:0.9rem; font-weight:normal;">SISWA PER KELAS</span></h3>
+        
+        <div class="control-panel">
+            <div class="form-group">
+                <label>PILIH KELAS</label>
+                <select id="filter_kelas_status" class="form-control" onchange="renderStatusTable()">
+                    <option value="SEMUA KELAS">SEMUA KELAS</option>
+                </select>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label>TANGGAL MULAI</label>
+                    <input type="date" id="filter_tgl_mulai" class="form-control" onchange="renderStatusTable()">
+                </div>
+                <div class="form-group">
+                    <label>SAMPAI</label>
+                    <input type="date" id="filter_tgl_akhir" class="form-control" onchange="renderStatusTable()">
+                </div>
+            </div>
+        </div>
+
+        <div id="status-content" class="status-container">
+            <div style="text-align:center; color:#64748b;">Memuat Data...</div>
+        </div>
+
+        <div style="margin-top: 20px; display: flex; gap: 10px;">
+             <button class="btn btn-secondary" onclick="tutupHalamanStatus()" style="flex:1;">KEMBALI</button>
+             <button class="btn btn-danger" onclick="logout()" style="flex:1;">LOGOUT</button>
+        </div>
     </div>
 </div>
 
@@ -241,23 +259,28 @@
 
 <script>
     // ============================================
-    // LANGKAH PENTING: ISI URL WEB APP DI BAWAH INI
+    // KONFIGURASI URL (URL ANDA SUDAH TERSIMPAN)
     // ============================================
-    const URL_APPS_SCRIPT = "https://script.google.com/macros/s/AKfycbz45AS2nfjeiwdwKOa6hsV0HGmjqMwfF-2EpfVmO-g71ywAAOqtJ3uWpzKOJiCHLgvf/exec";
-    // ============================================
-
+    const URL_APPS_SCRIPT = "https://script.google.com/macros/s/AKfycbxevP9G9Pvr72mBHumObH_SsF15IR31Jq6c4I3fK9DnWtRX4QoUYf4LGcjqSgSiC3CLSA/exec";
     const URL_FOLDER_REKAP = "https://drive.google.com/drive/folders/1Ic0kyLCG3A0ot6OrEyB3JJ3ppHyvlWJh?usp=sharing";
 
     let CURRENT_USER = null; 
     let DATA_SISWA = [];
     let ALL_DATES = []; 
     let PRESENSI_SAVED = false; 
+    let SETTING_KELAS = []; 
+    let STATUS_DB = {}; 
 
-    // --- CEK SESSION SAAT LOAD ---
     window.onload = function() {
         const savedNip = localStorage.getItem("guru_nip");
         const savedToken = localStorage.getItem("guru_token");
         
+        let today = new Date().toISOString().split('T')[0];
+        document.getElementById('filter_tgl_mulai').value = today;
+        document.getElementById('filter_tgl_akhir').value = today;
+        document.getElementById('filter_tgl_mulai').setAttribute("max", today);
+        document.getElementById('filter_tgl_akhir').setAttribute("max", today);
+
         if(savedNip && savedToken) {
             document.getElementById("login-nip").value = savedNip;
             const savedUser = JSON.parse(localStorage.getItem("guru_data") || "null");
@@ -266,17 +289,10 @@
                 showApp();
             }
         }
-
-        // FITUR LOGIN DENGAN ENTER
+        
         const inputNip = document.getElementById("login-nip");
         const inputPin = document.getElementById("login-pin");
-
-        function checkEnter(event) {
-            if (event.key === "Enter") {
-                doLogin(); 
-            }
-        }
-
+        function checkEnter(event) { if (event.key === "Enter") doLogin(); }
         inputNip.addEventListener("keypress", checkEnter);
         inputPin.addEventListener("keypress", checkEnter);
     };
@@ -285,11 +301,8 @@
         const nip = document.getElementById("login-nip").value;
         const pin = document.getElementById("login-pin").value;
         const remember = document.getElementById("remember-me").checked;
-        
         if(!nip || !pin) { swal("Error", "Isi NIP dan PIN!", "error"); return; }
-        
         const deviceId = Math.random().toString(36).substring(2, 15);
-        
         loading(true, "Memverifikasi...");
         
         fetch(URL_APPS_SCRIPT + `?action=login&nip=${nip}&pin=${pin}&deviceId=${deviceId}`)
@@ -298,39 +311,27 @@
             loading(false);
             if(res.status === "success") {
                 CURRENT_USER = res.data; 
-                
                 if(remember) {
                     localStorage.setItem("guru_nip", nip);
                     localStorage.setItem("guru_token", res.token);
                     localStorage.setItem("guru_data", JSON.stringify(CURRENT_USER));
                 }
-                
                 showApp();
             } else {
-                // HAPUS INPUT JIKA GAGAL
                 document.getElementById("login-nip").value = "";
                 document.getElementById("login-pin").value = "";
                 document.getElementById("login-nip").focus();
                 swal("Login Gagal", res.message, "error");
             }
-        })
-        .catch(e => { 
-            loading(false);
-            // HAPUS INPUT JIKA ERROR SERVER
-            document.getElementById("login-nip").value = "";
-            document.getElementById("login-pin").value = "";
-            swal("Error", "Gagal koneksi server", "error"); 
-        });
+        }).catch(e => { loading(false); document.getElementById("login-nip").value = ""; document.getElementById("login-pin").value = ""; swal("Error", "Gagal koneksi server. Cek URL.", "error"); });
     }
     
-    function logout() {
-        localStorage.clear();
-        location.reload();
-    }
+    function logout() { localStorage.clear(); location.reload(); }
     
     function showApp() {
         document.getElementById("view-login").style.display = "none";
         document.getElementById("view-app").style.display = "block";
+        document.getElementById("view-status-absen").style.display = "none";
         
         document.getElementById("disp-nama-guru").innerText = CURRENT_USER.nama;
         document.getElementById("disp-nip-guru").innerText = "NIP: " + CURRENT_USER.nip;
@@ -343,11 +344,7 @@
         if(mapelArr.length > 1) {
             containerMapel.style.display = "block";
             selectMapel.innerHTML = "";
-            mapelArr.forEach(m => {
-                let opt = document.createElement("option");
-                opt.value = m; opt.text = m;
-                selectMapel.add(opt);
-            });
+            mapelArr.forEach(m => { let opt = document.createElement("option"); opt.value = m; opt.text = m; selectMapel.add(opt); });
         } else {
             containerMapel.style.display = "none";
             document.getElementById("single_mapel_val").value = mapelArr[0]; 
@@ -357,38 +354,23 @@
         loadDaftarTanggal();
     }
 
-    function getSelectedMapel() {
-        const container = document.getElementById("container-mapel");
-        if(container.style.display !== "none") {
-            return document.getElementById("select_mapel").value;
-        }
-        return document.getElementById("single_mapel_val").value;
-    }
-
     function loading(show, msg="Memuat...") {
         document.getElementById("loading-text").innerText = msg;
         document.getElementById("loading-overlay").style.display = show ? "flex" : "none";
     }
 
     function loadDaftarKelas() {
-        fetch(URL_APPS_SCRIPT + "?action=getClasses")
-        .then(r => r.json())
-        .then(res => {
+        fetch(URL_APPS_SCRIPT + "?action=getClasses").then(r => r.json()).then(res => {
             let sel = document.getElementById("select_kelas");
             sel.innerHTML = '<option value="">-- Pilih Kelas --</option>';
             if(res.status === 'success') {
-                res.classes.forEach(c => {
-                    let opt = document.createElement("option");
-                    opt.value = c; opt.text = c; sel.add(opt);
-                });
+                res.classes.forEach(c => { let opt = document.createElement("option"); opt.value = c; opt.text = c; sel.add(opt); });
             }
         });
     }
 
     function loadDaftarTanggal() {
-        fetch(URL_APPS_SCRIPT + "?action=getDates")
-        .then(r => r.json())
-        .then(res => {
+        fetch(URL_APPS_SCRIPT + "?action=getDates").then(r => r.json()).then(res => {
             ALL_DATES = res.dates || [];
             renderDropdownTanggal(false);
         });
@@ -397,91 +379,66 @@
     function renderDropdownTanggal(showAll) {
         let sel = document.getElementById("tgl_absen");
         sel.innerHTML = ''; 
-        let today = new Date(); 
-        today.setHours(0,0,0,0); 
-        
-        let recentDates = []; // 5 hari ke belakang
-        let olderDates = [];  // Lebih dari 5 hari
+        let today = new Date(); today.setHours(0,0,0,0); 
+        let recentDates = [], olderDates = [];
         let reversedDates = [...ALL_DATES].reverse();
-
-        // Nama Bulan untuk Grouping
         const namaBulan = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
 
         reversedDates.forEach(dStr => {
             let parts = dStr.split("-");
-            let dObj = new Date(parts[2], parts[1]-1, parts[0]);
-            
-            // Sembunyikan Hari Depan
-            if (dObj > today) return;
-
+            let displayFmt = parts[2] + "-" + parts[1] + "-" + parts[0]; 
+            let dObj = new Date(parts[0], parts[1]-1, parts[2]); 
+            if (dObj > today) return; 
             let diffDays = Math.floor((today - dObj) / (1000 * 60 * 60 * 24)); 
-            
-            // Pisahkan Recent (0-5 hari) dan Older
-            if (diffDays <= 5) {
-                recentDates.push(dStr);
-            } else {
-                olderDates.push({ str: dStr, obj: dObj });
-            }
+            if (diffDays <= 5) recentDates.push({val: displayFmt, txt: displayFmt}); 
+            else olderDates.push({val: displayFmt, txt: displayFmt, obj: dObj});
         });
 
-        // Render Recent (Terbaru)
         if(recentDates.length > 0) {
             let grp = document.createElement("optgroup"); grp.label = "Terbaru";
             recentDates.forEach(d => {
-                let opt = document.createElement("option"); opt.value = d; opt.text = d;
+                let opt = document.createElement("option"); opt.value = d.val; opt.text = d.txt;
                 let dTodayStr = ("0" + today.getDate()).slice(-2) + "-" + ("0" + (today.getMonth()+1)).slice(-2) + "-" + today.getFullYear();
-                if(d === dTodayStr) opt.selected = true;
+                if(d.val === dTodayStr) opt.selected = true;
                 grp.appendChild(opt);
             });
             sel.appendChild(grp);
         }
 
-        // Render Older (Lampau)
         if (showAll && olderDates.length > 0) {
-            // Group per Bulan
             let currentMonthLabel = "";
             let currentGroup = null;
-
             olderDates.forEach(item => {
                 let mIndex = item.obj.getMonth();
                 let y = item.obj.getFullYear();
                 let label = namaBulan[mIndex] + " " + y;
-
                 if (label !== currentMonthLabel) {
                     currentMonthLabel = label;
                     currentGroup = document.createElement("optgroup");
                     currentGroup.label = label;
                     sel.appendChild(currentGroup);
                 }
-                
-                let opt = document.createElement("option"); 
-                opt.value = item.str; 
-                opt.text = item.str;
+                let opt = document.createElement("option"); opt.value = item.val; opt.text = item.txt;
                 currentGroup.appendChild(opt);
             });
-
         } else if (olderDates.length > 0) {
             let optMore = document.createElement("option");
             optMore.value = "SHOW_ALL"; optMore.text = "📂 Tampilkan Hari Lampau...";
             sel.add(optMore);
         }
-        
         if(sel.value && sel.value !== "SHOW_ALL") loadDataSiswa();
     }
 
     function handleDateChange() {
         let sel = document.getElementById("tgl_absen");
-        if (sel.value === "SHOW_ALL") { renderDropdownTanggal(true); sel.focus(); } 
-        else { loadDataSiswa(); }
+        if (sel.value === "SHOW_ALL") { renderDropdownTanggal(true); sel.focus(); } else { loadDataSiswa(); }
     }
 
     function loadDataSiswa() {
         let kelas = document.getElementById("select_kelas").value;
         let tgl = document.getElementById("tgl_absen").value;
-        
         document.getElementById("btn-jurnal").disabled = true;
         PRESENSI_SAVED = false;
-
         if(!kelas || !tgl || tgl === "SHOW_ALL") return;
 
         loading(true, "Sinkronisasi Data...");
@@ -493,37 +450,25 @@
                 renderListSiswa();
                 loadAbsenHarian(tgl, kelas); 
             } else { loading(false); alert("Error: " + res.message); }
-        })
-        .catch(e => { loading(false); alert("Gagal koneksi server!"); });
+        }).catch(e => { loading(false); alert("Gagal koneksi server!"); });
     }
 
     function renderListSiswa() {
         let container = document.getElementById('list-siswa');
         let html = "";
         if(DATA_SISWA.length === 0) { container.innerHTML = '<div style="text-align:center; padding:20px;">Tidak ada siswa.</div>'; return; }
-
         DATA_SISWA.forEach((s, idx) => {
             html += `
             <div class="siswa-item">
-                <div class="siswa-info">
-                    <span class="siswa-name">${s.absen}. ${s.nama}</span>
-                    <span class="siswa-details">${s.nis} | ${s.lp}</span>
-                </div>
+                <div class="siswa-info"><span class="siswa-name">${s.absen}. ${s.nama}</span><span class="siswa-details">${s.nis} | ${s.lp}</span></div>
                 <div class="absen-options">
-                    <input type="radio" class="radio-btn" name="st_${idx}" id="h_${idx}" value="H" checked>
-                    <label class="radio-label" for="h_${idx}">H</label>
-                    <input type="radio" class="radio-btn" name="st_${idx}" id="s_${idx}" value="S">
-                    <label class="radio-label" for="s_${idx}">S</label>
-                    <input type="radio" class="radio-btn" name="st_${idx}" id="i_${idx}" value="I">
-                    <label class="radio-label" for="i_${idx}">I</label>
-                    <input type="radio" class="radio-btn" name="st_${idx}" id="a_${idx}" value="A">
-                    <label class="radio-label" for="a_${idx}">A</label>
-                    <input type="radio" class="radio-btn" name="st_${idx}" id="t_${idx}" value="T">
-                    <label class="radio-label" for="t_${idx}">T</label>
-                    <input type="radio" class="radio-btn" name="st_${idx}" id="b_${idx}" value="B">
-                    <label class="radio-label" for="b_${idx}">B</label>
-                    <input type="radio" class="radio-btn" name="st_${idx}" id="d_${idx}" value="D">
-                    <label class="radio-label" for="d_${idx}">D</label>
+                    <input type="radio" class="radio-btn" name="st_${idx}" id="h_${idx}" value="H" checked><label class="radio-label" for="h_${idx}">H</label>
+                    <input type="radio" class="radio-btn" name="st_${idx}" id="s_${idx}" value="S"><label class="radio-label" for="s_${idx}">S</label>
+                    <input type="radio" class="radio-btn" name="st_${idx}" id="i_${idx}" value="I"><label class="radio-label" for="i_${idx}">I</label>
+                    <input type="radio" class="radio-btn" name="st_${idx}" id="a_${idx}" value="A"><label class="radio-label" for="a_${idx}">A</label>
+                    <input type="radio" class="radio-btn" name="st_${idx}" id="t_${idx}" value="T"><label class="radio-label" for="t_${idx}">T</label>
+                    <input type="radio" class="radio-btn" name="st_${idx}" id="b_${idx}" value="B"><label class="radio-label" for="b_${idx}">B</label>
+                    <input type="radio" class="radio-btn" name="st_${idx}" id="d_${idx}" value="D"><label class="radio-label" for="d_${idx}">D</label>
                 </div>
             </div>`;
         });
@@ -532,7 +477,6 @@
 
     function loadAbsenHarian(tgl, kelas) {
         DATA_SISWA.forEach((s, i) => { if(document.getElementById(`h_${i}`)) document.getElementById(`h_${i}`).checked = true; });
-
         fetch(URL_APPS_SCRIPT + "?action=read&tanggal=" + tgl + "&kelas=" + encodeURIComponent(kelas))
         .then(r => r.json())
         .then(res => {
@@ -543,135 +487,87 @@
                     if(idx !== -1) {
                         let btn = document.querySelector(`input[name="st_${idx}"][value="${item.status}"]`);
                         if(btn) btn.checked = true;
-
-                        // --- FIX PENGUNCIAN ---
                         if (item.status === 'B' || item.status === 'A') {
-                            // Jika B atau A: KUNCI SEMUA
                             let radios = document.getElementsByName(`st_${idx}`);
                             for(let r=0; r<radios.length; r++) radios[r].disabled = true;
                         } 
                         else if (item.status === 'T') {
-                            // Jika T: HANYA KUNCI TOMBOL 'H' (Value="H")
                             let radioH = document.querySelector(`input[name="st_${idx}"][value="H"]`);
                             if(radioH) radioH.disabled = true;
                         }
                     }
                 });
             }
-        })
-        .catch(e => loading(false));
+        }).catch(e => loading(false));
     }
 
     function simpanAbsen() {
         let kelas = document.getElementById("select_kelas").value;
         let tgl = document.getElementById("tgl_absen").value;
-        
         if(!kelas) { swal("Warning", "Pilih Kelas Dulu!", "warning"); return; }
         if(!tgl || tgl === "SHOW_ALL") { swal("Warning", "Pilih Tanggal Dulu!", "warning"); return; }
-
         let absenData = [];
         DATA_SISWA.forEach((s, i) => {
             let v = document.querySelector(`input[name="st_${i}"]:checked`).value;
             absenData.push({ nis: s.nis, status: v });
-            s.statusCurrent = v; 
         });
-        
         let payload = { action: "save", tanggal: tgl, kelas: kelas, absensi: absenData };
         loading(true, "Menyimpan Presensi...");
-        
         fetch(URL_APPS_SCRIPT, { method: "POST", body: JSON.stringify(payload) })
-        .then(r => r.json())
-        .then(res => {
+        .then(r => r.json()).then(res => {
             loading(false);
             if(res.status === "success") {
                 swal("Berhasil", res.message, "success");
                 document.getElementById("btn-jurnal").disabled = false;
                 PRESENSI_SAVED = true;
-
                 DATA_SISWA.forEach((s, idx) => {
                      let checkedRadio = document.querySelector(`input[name="st_${idx}"]:checked`);
                      if(checkedRadio) {
                          let status = checkedRadio.value;
-                         
-                         // --- FIX PENGUNCIAN SETELAH SIMPAN ---
-                         if (status === 'B' || status === 'A') {
-                             // Jika B atau A: KUNCI SEMUA
+                         if(['B', 'A'].includes(status)) {
                              let radios = document.getElementsByName(`st_${idx}`);
                              for(let r=0; r<radios.length; r++) radios[r].disabled = true;
-                         } 
-                         else if (status === 'T') {
-                             // Jika T: HANYA KUNCI TOMBOL 'H'
+                         } else if (status === 'T') {
                              let radioH = document.querySelector(`input[name="st_${idx}"][value="H"]`);
                              if(radioH) radioH.disabled = true;
                          }
                      }
                 });
-            } else {
-                swal("Gagal", res.message, "error");
-            }
-        })
-        .catch(e => { loading(false); swal("Info", "Cek Spreadsheet.", "warning"); });
+            } else { swal("Gagal", res.message, "error"); }
+        }).catch(e => { loading(false); swal("Info", "Cek Spreadsheet.", "warning"); });
     }
 
     function buatJurnal() {
         if(!PRESENSI_SAVED) { swal("Info", "Simpan Presensi Terlebih Dahulu!", "warning"); return; }
-        
-        const mapel = getSelectedMapel();
+        const mapel = document.getElementById("container-mapel").style.display !== "none" ? document.getElementById("select_mapel").value : document.getElementById("single_mapel_val").value;
         const materi = document.getElementById("input_materi").value;
         const jam = document.getElementById("input_jam").value;
         const uraian = document.getElementById("input_uraian").value;
         const kelas = document.getElementById("select_kelas").value;
         const tgl = document.getElementById("tgl_absen").value;
-
-        if(!mapel || !materi || !jam || !uraian) {
-            swal("Data Belum Lengkap", "Mohon isi Materi, Jam, dan Uraian Kegiatan.", "warning");
-            return;
-        }
-
+        if(!mapel || !materi || !jam || !uraian) { swal("Data Belum Lengkap", "Mohon isi Materi, Jam, dan Uraian Kegiatan.", "warning"); return; }
         let dataAbsenLengkap = [];
         DATA_SISWA.forEach((s, i) => {
             let v = document.querySelector(`input[name="st_${i}"]:checked`).value;
-            dataAbsenLengkap.push({
-                nis: s.nis,
-                nama: s.nama,
-                status: v
-            });
+            dataAbsenLengkap.push({ nis: s.nis, nama: s.nama, status: v });
         });
-
         let payload = {
-            action: "buatJurnal",
-            nip: CURRENT_USER.nip,
-            nama: CURRENT_USER.nama,
-            mapel: mapel,
-            materi: materi,
-            jam: jam,
-            uraian: uraian,
-            kelas: kelas,
-            tanggal: tgl,
-            absensi: dataAbsenLengkap
+            action: "buatJurnal", nip: CURRENT_USER.nip, nama: CURRENT_USER.nama, mapel: mapel,
+            materi: materi, jam: jam, uraian: uraian, kelas: kelas, tanggal: tgl, absensi: dataAbsenLengkap
         };
-
         loading(true, "Membuat Jurnal Harian...");
-        
         fetch(URL_APPS_SCRIPT, { method: "POST", body: JSON.stringify(payload) })
-        .then(r => r.json())
-        .then(res => {
+        .then(r => r.json()).then(res => {
             loading(false);
-            if(res.status === "success") {
-                swal("Sukses!", "Jurnal Berhasil Dibuat.", "success")
-                .then(() => {
-                    window.open(res.url, "_blank");
-                });
-            } else {
-                swal("Gagal", res.message, "error");
-            }
-        })
-        .catch(e => { loading(false); swal("Error", "Gagal menghubungi server", "error"); });
+            if(res.status === "success") { swal("Sukses!", "Jurnal Berhasil Dibuat.", "success").then(() => { window.open(res.url, "_blank"); }); }
+            else { swal("Gagal", res.message, "error"); }
+        }).catch(e => { loading(false); swal("Error", "Gagal menghubungi server", "error"); });
     }
 
     function buatRekap() {
         let kelas = document.getElementById("select_kelas").value;
         if(!kelas) { swal("Info", "Pilih Kelas dulu!", "warning"); return; }
+        
         let tglStr = document.getElementById("tgl_absen").value; 
         if(!tglStr || tglStr === "SHOW_ALL") { swal("Info", "Pilih Tanggal dulu!", "warning"); return; }
         
@@ -679,35 +575,186 @@
         let bulan = parseInt(parts[1]); 
         let tahun = parseInt(parts[2]);
         
-        swal({
-            title: "Buat Laporan?",
-            text: `Membuat file: ${kelas} - Bulan ${bulan} - ${tahun}`,
-            icon: "info",
-            buttons: ["Batal", "Buat"]
-        }).then(yes => {
+        swal({ title: "Buat Laporan?", text: `Membuat file: ${kelas} - Bulan ${bulan} - ${tahun}`, icon: "info", buttons: ["Batal", "Buat"] }).then(yes => {
             if(yes) {
                 document.getElementById("loading-rekap").style.display = "flex";
-                
                 fetch(URL_APPS_SCRIPT + `?action=rekap&kelas=${encodeURIComponent(kelas)}&bulan=${bulan}&tahun=${tahun}`)
-                .then(r => r.json())
-                .then(res => {
+                .then(r => r.json()).then(res => {
                     document.getElementById("loading-rekap").style.display = "none";
-                    
-                    if(res.status === "success") {
-                        swal("Sukses!", "Cek Folder Google Drive.", "success")
-                        .then(() => { window.open(URL_FOLDER_REKAP, "_blank"); });
-                    } else { swal("Gagal", res.message, "error"); }
-                })
-                .catch(e => {
-                     document.getElementById("loading-rekap").style.display = "none";
-                     swal("Error", "Gagal koneksi server", "error"); 
-                });
+                    if(res.status === "success") { swal("Sukses!", "Cek Folder Google Drive.", "success").then(() => { window.open(URL_FOLDER_REKAP, "_blank"); }); } 
+                    else { swal("Gagal", res.message, "error"); }
+                }).catch(e => { document.getElementById("loading-rekap").style.display = "none"; swal("Error", "Gagal koneksi server", "error"); });
             }
         });
+    }
+
+    function bukaHalamanStatus() {
+        document.getElementById("view-app").style.display = "none";
+        document.getElementById("view-status-absen").style.display = "block";
+        
+        loading(true, "Mengambil Data Setting...");
+        fetch(URL_APPS_SCRIPT + "?action=getSettings")
+        .then(r => r.json())
+        .then(res => {
+            loading(false);
+            if(res.status === 'success') {
+                SETTING_KELAS = res.data;
+                let sel = document.getElementById("filter_kelas_status");
+                sel.innerHTML = '<option value="SEMUA KELAS">SEMUA KELAS</option>';
+                SETTING_KELAS.forEach(s => {
+                    let opt = document.createElement("option");
+                    opt.value = s.kelas; opt.text = s.kelas;
+                    sel.add(opt);
+                });
+                renderStatusTable();
+            } else { swal("Gagal", "Gagal ambil setting kelas", "error"); }
+        })
+        .catch(e => loading(false));
+    }
+
+    function tutupHalamanStatus() {
+        document.getElementById("view-status-absen").style.display = "none";
+        document.getElementById("view-app").style.display = "block";
+    }
+
+    function renderStatusTable() {
+        let tglMulai = document.getElementById('filter_tgl_mulai').value;
+        let tglAkhir = document.getElementById('filter_tgl_akhir').value;
+        let klsFilter = document.getElementById('filter_kelas_status').value;
+
+        if(!tglMulai || !tglAkhir) return;
+
+        let isRange = (tglMulai !== tglAkhir);
+        document.getElementById("loading-status").style.display = "flex";
+        let container = document.getElementById("status-content");
+        container.innerHTML = "";
+        
+        let timeStamp = new Date().getTime();
+
+        fetch(URL_APPS_SCRIPT + `?action=checkStatus&startDate=${tglMulai}&endDate=${tglAkhir}&kelas=${encodeURIComponent(klsFilter)}&_=${timeStamp}`)
+        .then(r => r.json())
+        .then(res => {
+            document.getElementById("loading-status").style.display = "none";
+            
+            if(res.status === 'success') {
+                STATUS_DB = res.data; 
+                let dateList = res.dateList || [];
+                
+                if (dateList.length === 0) {
+                    container.innerHTML = `<div style="text-align:center; padding:20px; color:gray;">Tidak ada data tanggal di Database pada rentang ini.</div>`;
+                    return;
+                }
+                
+                if (isRange) {
+                    let html = `<div class="table-container"><table class="status-table">`;
+                    html += `<thead><tr><th style="min-width:120px; text-align:left; padding-left:15px;">Daftar Kelas</th>`;
+                    dateList.forEach(dStr => {
+                        let parts = dStr.split("-");
+                        let shortDate = `${parts[0]}/${parts[1]}`;
+                        html += `<th>${shortDate}</th>`;
+                    });
+                    html += `</tr></thead><tbody>`;
+
+                    SETTING_KELAS.forEach(setting => {
+                        let cls = setting.kelas;
+                        if(klsFilter !== "SEMUA KELAS" && klsFilter !== cls) return;
+
+                        html += `<tr><td>${cls}</td>`;
+                        dateList.forEach(tglStr => {
+                            let isFilled = (STATUS_DB[cls] && STATUS_DB[cls][tglStr]);
+                            let lockState = cekKunciOtomatis(setting, tglStr);
+                            
+                            let icon = "";
+                            let cellStyle = "cursor:pointer;"; 
+                            
+                            if (lockState.isLocked) {
+                                icon = `<i class="fa-solid fa-lock" style="color:#cbd5e1;" title="${lockState.reason}"></i>`;
+                                cellStyle = "cursor:not-allowed; background:#f8fafc;";
+                            } else if (isFilled) {
+                                icon = `<i class="fa-solid fa-circle-check" style="color:#22c55e; font-size:1.2rem;"></i>`;
+                            } else {
+                                icon = `<i class="fa-solid fa-circle-xmark" style="color:#ef4444; font-size:1.2rem;"></i>`;
+                            }
+                            
+                            let clickEvent = lockState.isLocked ? "" : `onclick="goToAbsen('${cls}', '${tglStr}')"`;
+                            html += `<td style="${cellStyle}" ${clickEvent}>${icon}</td>`;
+                        });
+                        html += `</tr>`;
+                    });
+                    html += `</tbody></table></div>`;
+                    html += `<div style="margin-top:15px; font-size:0.8rem; text-align:center; color:#64748b;"><span style="margin-right:15px"><i class="fa-solid fa-circle-check" style="color:#22c55e"></i> Sudah Absen</span><span style="margin-right:15px"><i class="fa-solid fa-circle-xmark" style="color:#ef4444"></i> Belum Absen</span><span><i class="fa-solid fa-lock" style="color:#cbd5e1"></i> Terkunci/Libur</span></div>`;
+                    container.innerHTML = html;
+                } 
+                else {
+                    let tglPilih = dateList[0];
+                    let html = `<div style="text-align:center; margin-bottom:15px; font-weight:bold;">Status Tanggal: ${tglPilih}</div>`;
+                    html += `<div class="status-col full-width">`;
+                    SETTING_KELAS.forEach(setting => {
+                        if(klsFilter !== "SEMUA KELAS" && klsFilter !== setting.kelas) return;
+                        let isFilled = (STATUS_DB[setting.kelas] && STATUS_DB[setting.kelas][tglPilih]);
+                        let lockState = cekKunciOtomatis(setting, tglPilih);
+                        html += createStatusCard(setting, tglPilih, isFilled, lockState);
+                    });
+                    html += `</div>`;
+                    container.innerHTML = html;
+                }
+
+            } else { container.innerHTML = "Gagal memuat data."; }
+        })
+        .catch(e => {
+            document.getElementById("loading-status").style.display = "none";
+        });
+    }
+
+    function cekKunciOtomatis(settingItem, tglStr) {
+        if (settingItem.status.toUpperCase() !== "AKTIF") return { isLocked: true, reason: "Kelas Non-Aktif" };
+        let parts = tglStr.split("-");
+        let dateAbsen = new Date(parts[2], parts[1] - 1, parts[0]);
+        let today = new Date();
+        let dateAbsenOnly = new Date(dateAbsen).setHours(0,0,0,0);
+        let todayOnly = new Date(today).setHours(0,0,0,0);
+
+        if (dateAbsenOnly < todayOnly) return { isLocked: false };
+        if (dateAbsenOnly > todayOnly) return { isLocked: true, reason: "Belum waktunya" };
+        if (dateAbsenOnly === todayOnly) {
+            let jamMasuk = parseInt(settingItem.jam.replace(".", "").replace(":", "")); 
+            let currentJam = today.getHours() * 100 + today.getMinutes(); 
+            if (currentJam < jamMasuk) return { isLocked: true, reason: "Belum jam masuk" };
+        }
+        return { isLocked: false };
+    }
+
+    function createStatusCard(settingItem, dateStr, isFilled, lockState) {
+        let badgeHtml = "";
+        if (lockState.isLocked) badgeHtml = `<div class="badge badge-lock"><i class="fa-solid fa-lock"></i> Terkunci</div>`; 
+        else if (isFilled) badgeHtml = `<div class="badge badge-sudah"><i class="fa-solid fa-check"></i> SUDAH</div>`;
+        else badgeHtml = `<div class="badge badge-belum"><i class="fa-solid fa-xmark"></i> BELUM</div>`;
+
+        let clickEvent = lockState.isLocked ? "" : `onclick="goToAbsen('${settingItem.kelas}', '${dateStr}')"`;
+        let cardStyle = lockState.isLocked ? "cursor:not-allowed; opacity:0.7;" : "";
+
+        return `
+        <div class="status-card" style="${cardStyle}" ${clickEvent}>
+            <div><div class="st-name">${settingItem.kelas}</div><div class="st-date">${dateStr}</div></div>
+            ${badgeHtml}
+        </div>`;
+    }
+
+    function goToAbsen(kelas, dateStr) {
+        tutupHalamanStatus();
+        let selKelas = document.getElementById("select_kelas");
+        selKelas.value = kelas;
+        let selTgl = document.getElementById("tgl_absen");
+        let optionExists = false;
+        for (let i = 0; i < selTgl.options.length; i++) {
+            if (selTgl.options[i].value === dateStr) { selTgl.selectedIndex = i; optionExists = true; break; }
+        }
+        if(!optionExists) {
+             let opt = document.createElement("option"); opt.value = dateStr; opt.text = dateStr; opt.selected = true; selTgl.add(opt);
+        } else { selTgl.value = dateStr; }
+        loadDataSiswa();
     }
 </script>
 
 </body>
-
 </html>
-

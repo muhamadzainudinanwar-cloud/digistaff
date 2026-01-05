@@ -8,7 +8,6 @@
     <link rel="icon" href="https://drive.google.com/thumbnail?id=1WYHFwnSkAhz66zwxnhdZ6On9G8MBTQZl&sz=s1000" type="image/x-icon">
     <link rel="shortcut icon" href="https://drive.google.com/thumbnail?id=1WYHFwnSkAhz66zwxnhdZ6On9G8MBTQZl&sz=s1000" type="image/x-icon">
     <link rel="apple-touch-icon" href="https://drive.google.com/thumbnail?id=1WYHFwnSkAhz66zwxnhdZ6On9G8MBTQZl&sz=s1000">
-
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
@@ -21,9 +20,20 @@
         .login-input { width: 80%; padding: 12px; margin: 10px 0; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 1rem; }
         .pin-input { letter-spacing: 5px; text-align: center; font-weight: bold; }
         
-        /* LOGO STYLE */
-        .logo-sekolah-container { width: 140px; height: 140px; margin: 0 auto 15px auto; display: flex; justify-content: center; align-items: center; background: transparent; }
-        .logo-sekolah-img { width: 100%; height: 100%; object-fit: contain; }
+        /* CSS LOGO (Agar Gambar Jelas & Tidak Gepeng) */
+        .logo-sekolah-container {
+            width: 140px; 
+            height: 140px; 
+            margin: 0 auto 15px auto;
+            display: flex; 
+            justify-content: center; 
+            align-items: center;
+        }
+        .logo-sekolah-img {
+            width: 100%; 
+            height: 100%; 
+            object-fit: contain; /* Gambar akan pas di kotak tanpa terpotong */
+        }
 
         /* HEADER & APP */
         .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; border-bottom: 2px solid #e2e8f0; padding-bottom: 15px; }
@@ -69,16 +79,18 @@
         .radio-btn[value="B"]:checked + .radio-label { background: #1e293b; color: white; border-color: #1e293b; }
         .radio-btn[value="D"]:checked + .radio-label { background: #ec4899; color: white; border-color: #ec4899; }
 
-        /* LOADING */
-        #loading-overlay, #loading-status { position: fixed; top: 0; left: 0; width: 100%; height: 100%; display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 2000; background: rgba(255,255,255,0.9); }
+        /* LOADING & ANIMATION */
+        #loading-overlay, #loading-rekap, #loading-status { position: fixed; top: 0; left: 0; width: 100%; height: 100%; display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 2000; }
+        #loading-overlay { background: rgba(255,255,255,0.9); }
+        #loading-rekap { background: rgba(255, 255, 255, 0.98); }
+        #loading-status { background: rgba(255, 255, 255, 0.9); }
         .spinner { width: 40px; height: 40px; border: 4px solid #e2e8f0; border-top: 4px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         
-        /* STYLE LOGO REKAP (STANDARD GEAR) */
-        #loading-rekap { position: fixed; top: 0; left: 0; width: 100%; height: 100%; display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 2000; background: rgba(255, 255, 255, 0.98); }
+        /* STYLE LOGO BERPUTAR (REKAP) */
         .gear-wrapper-red { position: relative; width: 180px; height: 180px; display: flex; justify-content: center; align-items: center; margin-bottom: 25px; }
         .outer-gear-icon { font-size: 180px; color: #ef4444; position: absolute; animation: spin-slow 5s linear infinite; }
         .custom-logo-center { width: 110px; height: 110px; object-fit: contain; position: absolute; border-radius: 50%; background: white; padding: 5px; z-index: 5; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         @keyframes spin-slow { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         
         /* TABLE & STATUS STYLE */
@@ -123,8 +135,7 @@
         <div class="logo-sekolah-container">
             <img src="https://drive.google.com/thumbnail?id=1WYHFwnSkAhz66zwxnhdZ6On9G8MBTQZl&sz=s1000" 
                  class="logo-sekolah-img" 
-                 alt="Logo Sekolah"
-                 referrerpolicy="no-referrer">
+                 alt="Logo Sekolah">
         </div>
         
         <h2 style="color: var(--primary); margin-top: 0;">🔐 Login Guru</h2>
@@ -250,7 +261,7 @@
     // ============================================
     // KONFIGURASI URL (URL ANDA SUDAH TERSIMPAN)
     // ============================================
-    const URL_APPS_SCRIPT = "https://script.google.com/macros/s/AKfycbyHInNA-qDyjjZ8AfVhOBZTl1CwBPAbMi_LD8W_OBgBGKA5aOR7-wy4IsU41zPtJuWQRQ/exec";
+    const URL_APPS_SCRIPT = "https://script.google.com/macros/s/AKfycbxxPB8zhcL9WM9W4o0YWZ7Q70Am7pjZsN--w0qgMprhr9lngEdPTWX8U_5JCluCNzeRbA/exec";
     const URL_FOLDER_REKAP = "https://drive.google.com/drive/folders/1Ic0kyLCG3A0ot6OrEyB3JJ3ppHyvlWJh?usp=sharing";
 
     let CURRENT_USER = null; 
@@ -476,9 +487,7 @@
                     if(idx !== -1) {
                         let btn = document.querySelector(`input[name="st_${idx}"][value="${item.status}"]`);
                         if(btn) btn.checked = true;
-                        
-                        // UPDATE: Hanya kunci jika 'B' (Bolos). 'A' (Alpa) boleh diubah.
-                        if (item.status === 'B') {
+                        if (item.status === 'B' || item.status === 'A') {
                             let radios = document.getElementsByName(`st_${idx}`);
                             for(let r=0; r<radios.length; r++) radios[r].disabled = true;
                         } 
@@ -495,35 +504,14 @@
     function simpanAbsen() {
         let kelas = document.getElementById("select_kelas").value;
         let tgl = document.getElementById("tgl_absen").value;
-        
-        // Data Jurnal
-        const mapel = document.getElementById("container-mapel").style.display !== "none" ? document.getElementById("select_mapel").value : document.getElementById("single_mapel_val").value;
-        const materi = document.getElementById("input_materi").value;
-        const jam = document.getElementById("input_jam").value;
-        const uraian = document.getElementById("input_uraian").value;
-
         if(!kelas) { swal("Warning", "Pilih Kelas Dulu!", "warning"); return; }
         if(!tgl || tgl === "SHOW_ALL") { swal("Warning", "Pilih Tanggal Dulu!", "warning"); return; }
-        
         let absenData = [];
         DATA_SISWA.forEach((s, i) => {
             let v = document.querySelector(`input[name="st_${i}"]:checked`).value;
-            absenData.push({ nis: s.nis, nama: s.nama, status: v });
+            absenData.push({ nis: s.nis, status: v });
         });
-        
-        let payload = { 
-            action: "save", 
-            tanggal: tgl, 
-            kelas: kelas, 
-            absensi: absenData,
-            mapel: mapel,
-            materi: materi,
-            jam: jam,
-            uraian: uraian,
-            nip: CURRENT_USER.nip,
-            nama_guru: CURRENT_USER.nama
-        };
-
+        let payload = { action: "save", tanggal: tgl, kelas: kelas, absensi: absenData };
         loading(true, "Menyimpan Presensi...");
         fetch(URL_APPS_SCRIPT, { method: "POST", body: JSON.stringify(payload) })
         .then(r => r.json()).then(res => {
@@ -536,9 +524,7 @@
                      let checkedRadio = document.querySelector(`input[name="st_${idx}"]:checked`);
                      if(checkedRadio) {
                          let status = checkedRadio.value;
-                         
-                         // UPDATE: Kunci hanya jika 'B'. 'A' tidak dikunci lagi.
-                         if(status === 'B') {
+                         if(['B', 'A'].includes(status)) {
                              let radios = document.getElementsByName(`st_${idx}`);
                              for(let r=0; r<radios.length; r++) radios[r].disabled = true;
                          } else if (status === 'T') {
@@ -591,13 +577,13 @@
         
         swal({ title: "Buat Laporan?", text: `Membuat file: ${kelas} - Bulan ${bulan} - ${tahun}`, icon: "info", buttons: ["Batal", "Buat"] }).then(yes => {
             if(yes) {
-                loading(true, "Memproses Rekap Bulanan...");
+                document.getElementById("loading-rekap").style.display = "flex";
                 fetch(URL_APPS_SCRIPT + `?action=rekap&kelas=${encodeURIComponent(kelas)}&bulan=${bulan}&tahun=${tahun}`)
                 .then(r => r.json()).then(res => {
-                    loading(false);
+                    document.getElementById("loading-rekap").style.display = "none";
                     if(res.status === "success") { swal("Sukses!", "Cek Folder Google Drive.", "success").then(() => { window.open(URL_FOLDER_REKAP, "_blank"); }); } 
                     else { swal("Gagal", res.message, "error"); }
-                }).catch(e => { loading(false); swal("Error", "Gagal koneksi server", "error"); });
+                }).catch(e => { document.getElementById("loading-rekap").style.display = "none"; swal("Error", "Gagal koneksi server", "error"); });
             }
         });
     }

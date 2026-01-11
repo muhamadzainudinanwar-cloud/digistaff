@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
+  	<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Aplikasi Jurnal & Absensi</title>
@@ -194,7 +195,23 @@
         <div class="siswa-list" id="list-siswa"><div style="text-align: center; color: #64748b; padding: 20px;">Silakan pilih Kelas & Tanggal</div></div>
 
         <button class="btn btn-primary" onclick="simpanAbsen()"><i class="fa-solid fa-floppy-disk"></i> SIMPAN PRESENSI</button>
-        <button id="btn-jurnal" class="btn btn-warning" onclick="buatJurnal()" disabled><i class="fa-solid fa-book-open"></i> BUAT JURNAL HARIAN</button>
+        <div style="display: flex; gap: 10px; margin-top: 15px; width: 100%;">
+    
+    <button id="btn-jurnal" 
+            class="btn btn-warning" 
+            style="flex: 1 1 0px; width: 0; padding: 12px 5px; font-size: 0.9rem;" 
+            onclick="buatJurnal()" disabled>
+        <i class="fa-solid fa-book-open"></i> BUAT JURNAL HARIAN
+    </button>
+    
+    <button id="btn-rekap-jurnal" 
+            class="btn" 
+            style="flex: 1 1 0px; width: 0; padding: 12px 5px; font-size: 0.9rem; background-color: #8b5cf6; color: white;" 
+            onclick="buatRekapJurnalMengajar()" disabled>
+        <i class="fa-solid fa-file-signature"></i> REKAP JURNAL MENGAJAR
+    </button>
+
+</div>
 
         <div style="margin-top: 15px;">
             <button class="btn btn-info" onclick="bukaHalamanStatus()"><i class="fa-solid fa-list-check"></i> CEK KETERISIAN ABSEN</button>
@@ -250,8 +267,8 @@
     // ============================================
     // KONFIGURASI URL (URL ANDA SUDAH TERSIMPAN)
     // ============================================
-    const URL_APPS_SCRIPT = "https://script.google.com/macros/s/AKfycbxevP9G9Pvr72mBHumObH_SsF15IR31Jq6c4I3fK9DnWtRX4QoUYf4LGcjqSgSiC3CLSA/exec";
-    const URL_FOLDER_REKAP = "https://drive.google.com/drive/folders/1Ic0kyLCG3A0ot6OrEyB3JJ3ppHyvlWJh?usp=sharing";
+    const URL_APPS_SCRIPT = "https://script.google.com/macros/s/AKfycbw6AGBAXNBW871zyswytjjcagoVbikBvqAa0QFoZhZsE8cEMqV9s0wCl47-SEDGX0DZ/exec";
+    const URL_FOLDER_REKAP = "https://drive.google.com/drive/folders/1BhbJgqGGgzYRnJ3GCgU12b06oGUrTbsP?usp=drive_link";
 
     let CURRENT_USER = null; 
     let DATA_SISWA = [];
@@ -490,66 +507,138 @@
             }
         }).catch(e => loading(false));
     }
+// ==========================================
+// FUNGSI SIMPAN ABSEN (VERSI SESUAI FILE ANDA)
+// ==========================================
+function simpanAbsen() {
+    // 1. Ambil Elemen Tombol
+    let btnSimpan = document.querySelector(".btn-primary"); // Tombol Simpan Presensi
+    // Atau jika Anda punya ID khusus untuk tombol: document.getElementById("btn_simpan");
+    
+    // 2. Ambil Data Kelas & Tanggal
+    let kelas = document.getElementById("select_kelas").value;
+    let tanggal = document.getElementById("tgl_absen").value;
 
-    function simpanAbsen() {
-        let kelas = document.getElementById("select_kelas").value;
-        let tgl = document.getElementById("tgl_absen").value;
-        
-        // Data Jurnal
-        const mapel = document.getElementById("container-mapel").style.display !== "none" ? document.getElementById("select_mapel").value : document.getElementById("single_mapel_val").value;
-        const materi = document.getElementById("input_materi").value;
-        const jam = document.getElementById("input_jam").value;
-        const uraian = document.getElementById("input_uraian").value;
-
-        if(!kelas) { swal("Warning", "Pilih Kelas Dulu!", "warning"); return; }
-        if(!tgl || tgl === "SHOW_ALL") { swal("Warning", "Pilih Tanggal Dulu!", "warning"); return; }
-        
-        let absenData = [];
-        DATA_SISWA.forEach((s, i) => {
-            let v = document.querySelector(`input[name="st_${i}"]:checked`).value;
-            absenData.push({ nis: s.nis, nama: s.nama, status: v });
-        });
-        
-        let payload = { 
-            action: "save", 
-            tanggal: tgl, 
-            kelas: kelas, 
-            absensi: absenData,
-            mapel: mapel,
-            materi: materi,
-            jam: jam,
-            uraian: uraian,
-            nip: CURRENT_USER.nip,
-            nama_guru: CURRENT_USER.nama
-        };
-
-        loading(true, "Menyimpan Presensi...");
-        fetch(URL_APPS_SCRIPT, { method: "POST", body: JSON.stringify(payload) })
-        .then(r => r.json()).then(res => {
-            loading(false);
-            if(res.status === "success") {
-                swal("Berhasil", res.message, "success");
-                document.getElementById("btn-jurnal").disabled = false;
-                PRESENSI_SAVED = true;
-                DATA_SISWA.forEach((s, idx) => {
-                     let checkedRadio = document.querySelector(`input[name="st_${idx}"]:checked`);
-                     if(checkedRadio) {
-                         let status = checkedRadio.value;
-                         // MODIFIKASI: Kunci hanya jika status == 'B'. 'A' tidak dikunci.
-                         if(status === 'B') {
-                             let radios = document.getElementsByName(`st_${idx}`);
-                             for(let r=0; r<radios.length; r++) radios[r].disabled = true;
-                         } else if (status === 'T') {
-                             let radioH = document.querySelector(`input[name="st_${idx}"][value="H"]`);
-                             if(radioH) radioH.disabled = true;
-                         }
-                     }
-                });
-            } else { swal("Gagal", res.message, "error"); }
-        }).catch(e => { loading(false); swal("Info", "Cek Spreadsheet.", "warning"); });
+    // 3. Validasi Koneksi
+    if (!navigator.onLine) {
+        swal("Offline", "Anda sedang offline. Cek koneksi internet.", "error");
+        return;
     }
 
-    function buatJurnal() {
+    // 4. Validasi Data Siswa (Menggunakan variabel global DATA_SISWA)
+    // Di file Anda, DATA_SISWA adalah array yang menyimpan data saat ini.
+    if (!DATA_SISWA || DATA_SISWA.length === 0) {
+        swal("Error", "Data siswa belum dimuat. Silakan pilih kelas lagi.", "warning");
+        return;
+    }
+
+    let dataAbsen = [];
+    let belumLengkap = false;
+
+    // LOOP LANGSUNG DARI DATA MEMORI (BUKAN SCRAPING HTML)
+    DATA_SISWA.forEach((siswa, index) => {
+        // Cari radio button berdasarkan index (sesuai renderListSiswa Anda: name="st_${idx}")
+        // Menggunakan querySelector untuk mencari radio yang CHECKED
+        let radioAktif = document.querySelector(`input[name="st_${index}"]:checked`);
+        
+        let status = "";
+        if (radioAktif) {
+            status = radioAktif.value;
+        }
+
+        if (status === "") {
+            belumLengkap = true;
+        } else {
+            // Kita pakai data dari DATA_SISWA langsung, jadi NIS & Nama pasti benar
+            dataAbsen.push({ 
+                nis: siswa.nis, 
+                nama: siswa.nama, 
+                status: status 
+            });
+        }
+    });
+
+    // 5. Cek Kelengkapan
+    if (belumLengkap) {
+        swal("Data Belum Lengkap", "Harap isi kehadiran semua siswa.", "warning");
+        return;
+    }
+
+    // 6. Siapkan Pengiriman Data
+    loading(true, "Menyimpan Data..."); // Pakai fungsi loading() bawaan web Anda
+    
+    let formData = new FormData();
+    formData.append("action", "save");
+    formData.append("data", JSON.stringify(dataAbsen));
+    formData.append("kelas", kelas);
+    formData.append("tanggal", tanggal);
+
+    // --- DATA JURNAL (DISESUAIKAN DENGAN ID DI FILE ANDA) ---
+    // Di file Anda: CURRENT_USER menyimpan data guru
+    let nipGuru = CURRENT_USER ? CURRENT_USER.nip : "";
+    let namaGuru = CURRENT_USER ? CURRENT_USER.nama : "";
+
+    formData.append("nip_guru", nipGuru);
+    formData.append("nama_guru", namaGuru);
+
+    // Ambil inputan jurnal (ID elemen sesuai file njajal index.txt)
+    let elMapel = document.getElementById("select_mapel") || document.getElementById("single_mapel_val");
+    let elJam = document.getElementById("input_jam");       // <-- ID ANDA: input_jam
+    let elMateri = document.getElementById("input_materi"); // <-- ID ANDA: input_materi
+    let elUraian = document.getElementById("input_uraian"); // <-- ID ANDA: input_uraian
+
+    formData.append("mapel", elMapel ? elMapel.value : "");
+    formData.append("jam", elJam ? elJam.value : "");
+    formData.append("materi", elMateri ? elMateri.value : "");
+    formData.append("uraian", elUraian ? elUraian.value : "");
+    // -------------------------------------------------------
+
+    // 7. Kirim ke Google Apps Script
+    fetch(URL_APPS_SCRIPT, { // Menggunakan variabel URL_APPS_SCRIPT yang ada di file Anda
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(res => {
+        loading(false);
+        if (res.status === "success") {
+            swal("Berhasil", "Data absensi & jurnal tersimpan.", "success")
+            .then(() => {
+                 // Opsional: Tutup atau reset
+                 if(typeof tutupHalamanStatus === "function") tutupHalamanStatus();
+            });
+            PRESENSI_SAVED = true; // Set flag sesuai file Anda
+          // ============================================================
+            // MULAI KODE BARU (Area Menghidupkan Tombol)
+            // ============================================================
+            
+            // 1. Hidupkan Tombol Kiri (Buat Jurnal)
+            let btnKiri = document.getElementById("btn-jurnal");
+            if(btnKiri) btnKiri.disabled = false; 
+
+            // 2. Hidupkan Tombol Kanan (Rekap Jurnal)
+            let btnKanan = document.getElementById("btn-rekap-jurnal");
+            if(btnKanan) btnKanan.disabled = false; 
+
+            // 3. PENTING: Jangan panggil loadDataSiswa() disini
+            // karena itu akan mematikan tombol lagi.
+            // Jika ada baris: loadDataSiswa(); -> HAPUS atau beri // depannya
+            
+            // ============================================================
+            // SELESAI KODE BARU
+            // ============================================================
+          
+        } else {
+            swal("Gagal", "Server: " + res.message, "error");
+        }
+    })
+    .catch(error => {
+        loading(false);
+        swal("Error", "Gagal koneksi: " + error.message, "error");
+    });
+}
+
+  function buatJurnal() {
         if(!PRESENSI_SAVED) { swal("Info", "Simpan Presensi Terlebih Dahulu!", "warning"); return; }
         const mapel = document.getElementById("container-mapel").style.display !== "none" ? document.getElementById("select_mapel").value : document.getElementById("single_mapel_val").value;
         const materi = document.getElementById("input_materi").value;
@@ -766,6 +855,41 @@
         } else { selTgl.value = dateStr; }
         loadDataSiswa();
     }
+  
+  function buatRekapJurnalMengajar() {
+        if(!CURRENT_USER) { swal("Error", "Anda belum login!", "error"); return; }
+        
+        swal({
+            title: "Rekap Jurnal Mengajar",
+            text: "Sistem akan menarik seluruh data mengajar Anda dari database dan menyusunnya ke dalam format Jurnal Bulanan.",
+            icon: "info",
+            buttons: ["Batal", "Proses"]
+        }).then(yes => {
+            if(yes) {
+                loading(true, "Menyusun Jurnal Mengajar...");
+                
+                // Panggil Backend
+                fetch(URL_APPS_SCRIPT + `?action=rekapJurnal&nip=${CURRENT_USER.nip}&nama=${encodeURIComponent(CURRENT_USER.nama)}`)
+                .then(r => r.json())
+                .then(res => {
+                    loading(false);
+                    if(res.status === "success") {
+                        swal("Berhasil!", "Jurnal Mengajar telah siap.", "success")
+                        .then(() => { 
+                            window.open(res.url, "_blank"); 
+                        });
+                    } else {
+                        swal("Gagal", res.message, "error");
+                    }
+                })
+                .catch(e => {
+                    loading(false);
+                    swal("Error", "Gagal koneksi ke server.", "error");
+                });
+            }
+        });
+    }
+  
 </script>
 
 </body>
